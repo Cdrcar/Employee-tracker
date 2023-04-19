@@ -1,5 +1,5 @@
-//Import MySQL package
-const mysql = require("mysql")
+//Import MySQL2 package to connect MySQL database and perform queries
+const mysql = require("mysql2")
 
 //Call createConnection method to define connection to MySQL
 const connection = mysql.createConnection({
