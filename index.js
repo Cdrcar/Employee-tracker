@@ -1,93 +1,119 @@
 //Require dependencies
 
-const inquirer = require ("inquirer"); //Inquirer package to interact with the user via the command line
+const inquirer = require("inquirer"); //Inquirer package to interact with the user via the command line
 const connection = require("./config/connection");
-const figlet = require("figlet");// Figlet to add style to text in the terminal
-const chalk = require("chalk")// Chalk to style the console with colors
+const figlet = require("figlet"); // Figlet to add style to text in the terminal
+const chalk = require("chalk"); // Chalk to style the console with colors
 require("console.table"); // Console.table to print MySQL rows to the console
 
 //Establish connection to MySQL database, console log to the console error or success message
 
-connection.connect( (error) => {
-    if (error) throw error;
-    console.log(chalk.cyanBright.bold(figlet.textSync("Employee Management")));
-    // Call function userChoices
-    userChoices();
-})
+connection.connect((error) => {
+  if (error) throw error;
+  console.log(chalk.cyanBright.bold(figlet.textSync("Employee Management")));
+  // Call function userChoices
+  userChoices();
+});
 
-// Function to prompt the user to select an option from the list of choices 
+// Function to prompt the user to select an option from the list of choices
 const userChoices = () => {
-    inquirer.prompt({
-        type: ' list',
-        name: 'choices',
-        message: 'What would you like to do?',
-        choices: [
-            'View All Employees',
-            'Add Employee',
-            'Update Employee Role',
-            'View All Roles',
-            'Add Role',
-            'View All Departments',
-            'Add Department',
-            //Extra functionality
-            'Update Employee Manager',
-            'View Employees By Department',
-            'Remove Department',
-            'Remove Role',
-            'Remove Employee',
-            'View Department Budget',
-            'Close'
-        ]
+  inquirer
+    .prompt({
+      type: " list",
+      name: "choices",
+      message: "What would you like to do?",
+      choices: [
+        "View All Employees",
+        "Add Employee",
+        "Update Employee Role",
+        "View All Roles",
+        "Add Role",
+        "View All Departments",
+        "Add Department",
+        //Extra functionality
+        "Update Employee Manager",
+        "View Employees By Department",
+        "Remove Department",
+        "Remove Role",
+        "Remove Employee",
+        "View Department Budget",
+        "Close",
+      ],
     })
+    //Switch statements to check the value of the answers and call corresponding function for each case
     .then((answers) => {
-        const {choices} = answers;
-    
-        switch(choices) {
-            case 'View All Employees':
-                viewAllEmployees();
-                break;
-            case 'Add Employee':
-                addEmployee();
-                break;
-            case 'Update Employee Role':
-                updateEmployeeRole();
-                break;
-            case 'View All Roles':
-                viewAllRoles();
-                break;
-            case 'Add Role':
-                addRole();
-                break;
-            case 'View All Departments':
-                viewAllDepartments();
-                break;
-            case 'Add Department':
-                addDepartment();
-                break;
-            case 'Update Employee Manager':
-                updateEmployeeManager();
-                break;
-            case 'View Employees By Department':
-                viewEmployeesByDepartment();
-                break;
-            case 'Remove Department':
-                removeDepartment();
-                break;
-            case 'Remove Role':
-                removeRole();
-                break;
-            case 'Remove Employee':
-                removeEmployee();
-                break;
-            case 'View Department Budget':
-                viewDepartmentBudget();
-                break;
-            case 'Close':
-                connection.end();
-                break;
-            default:
-                console.log('Invalid choice');
-        }
+      const { choices } = answers;
+
+      switch (choices) {
+        case "View All Employees":
+          viewAllEmployees();
+          break;
+        case "Add Employee":
+          addEmployee();
+          break;
+        case "Update Employee Role":
+          updateEmployeeRole();
+          break;
+        case "View All Roles":
+          viewAllRoles();
+          break;
+        case "Add Role":
+          addRole();
+          break;
+        case "View All Departments":
+          viewAllDepartments();
+          break;
+        case "Add Department":
+          addDepartment();
+          break;
+        case "Update Employee Manager":
+          updateEmployeeManager();
+          break;
+        case "View Employees By Department":
+          viewEmployeesByDepartment();
+          break;
+        case "Remove Department":
+          removeDepartment();
+          break;
+        case "Remove Role":
+          removeRole();
+          break;
+        case "Remove Employee":
+          removeEmployee();
+          break;
+        case "View Department Budget":
+          viewDepartmentBudget();
+          break;
+        case "Close":
+          connection.end();
+          break;
+        default:
+          console.log("Invalid choice");
+      }
     });
-    
+};
+
+// Function to View all employees
+const viewAllEmployees = () => {
+  //Retrieve data from database using Structured Query Language
+  let query = 
+  `SELECT e.id, 
+  e.first_name, 
+  e.last_name, 
+  r.title, 
+  d.department_name AS 'department', 
+  r.salary
+  FROM employee e, role r, department d 
+  WHERE d.id = r.department_id 
+  AND r.id = e.role_id
+  ORDER BY e.id ASC`;
+//The promise() will wait until the connection is done before moving in to the next step and allows to hanlde the result of the query async
+//The query () method takes the sql query as a parameter to be executed and a callback function to handle the result of the sql query
+  connection.promise().query(query, (error, response) => {
+    if (error) throw error;
+    console.log(chalk.cyanBright.bold(`View all Employees`));
+    console.table(response);
+    //Call userChoices function to show choices again
+    userChoices();
+  })
 };
