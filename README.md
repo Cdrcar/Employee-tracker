@@ -1,4 +1,4 @@
-# Employee tracker
+# Employee Management
 Content management systems (CMS) interface that allows users to easily view and interact with information stored in databases.
 
 ## [Table of Contents](#table-of-contents)
