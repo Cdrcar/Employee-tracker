@@ -93,7 +93,7 @@ const userChoices = () => {
     });
 };
 
-// Function to View all employees
+// Function to View All Employees
 const viewAllEmployees = () => {
   //Retrieve data from database using Structured Query Language
   let query = 
@@ -118,7 +118,7 @@ const viewAllEmployees = () => {
   })
 };
 
-//Function to Add employee
+//Function to Add Employee
 const addEmployee = () => {
     inquirer.prompt([
         {
@@ -195,6 +195,7 @@ const addEmployee = () => {
                 connection.query(insertSql, newEmployee, (error) => {
                   if (error) throw error;
                   console.log("A new employee has been added to the database")
+                  //Call function viewAllEmployees to see the updated list
                   viewAllEmployees();
                 });
               });
@@ -203,3 +204,73 @@ const addEmployee = () => {
         });
     });
 };
+
+// Function to Update Employee Role
+const updateEmployeeRole = () => {
+  // Define SQL query
+  let query = 
+  `SELECT e.id, e.first_name, e.last_name, r.id 
+   FROM employee e, role r, department d
+   WHERE d.id = r.department_id AND r.id = e.role_id`;
+   //Execute the query
+   connection.promise().query(query, (error, response) => {
+    if (error) throw error;
+    // Create array of employees names, iterate over each object in the response array and push first name + last name to the array of employees
+    let arrayOfEmployees = [];
+    response.forEach((employee) => {
+      arrayOfEmployees.push(`${employee.first_name} ${employee.last_name}`)
+    });
+    // Retrieve the id and title of all roles
+    let query = 
+    `SELECT r.id, r.title
+     FROM role r`;
+     connection.promise().query(query, (error, response) => {
+      if (error) throw error;
+      // Create array of of roles, iterate over each object in the response array and push the title property to the array of roles
+      let arrayOfRoles = [];
+      response.forEach((role) => {arrayOfRoles.push(role.title)});
+
+      // Prompt user to select what employee has a new role and whar is their new role
+      inquirer.prompt([
+        {
+          name: 'updateEmployee',
+          type: 'list',
+          message: "Select employee to update role",
+          choices:arrayOfEmployees
+        },
+        {
+          name: 'updateRole',
+          type: 'list',
+          message: "Select new role",
+          choices: arrayOfRoles
+        }
+      ])
+      .then((answer) => {
+        let employeeId, newRoleId;
+        // Check if the employee's full name chosen from the prompt matches the value of the response array of objects
+        response.forEach((employee) => {
+          if (answer.updateEmployee === `${employee.first_name} ${employee.lastName}`){
+            employeeId = employee.id;
+          }
+         });
+
+         // Check if the title property of the role matches the updateRole property in the answer object
+         response.forEach((role) => {
+          if(answer.updateRole === role.title) {
+            newRoleId = role.id;
+          }
+         });
+         // Update database
+         let query = 
+         `UPDATE employee 
+          SET employee.role_id = ?
+          WHERE employee.is= ?`;
+          connection.query(sql, [employeeId, newRoleId], (error) => {
+            if (error) throw error;
+              console.log(chalk.cyanBright('Employee role updated'));
+              userChoices();
+          })
+        })
+      })
+     })
+   }
