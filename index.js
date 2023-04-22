@@ -149,6 +149,57 @@ const addEmployee = () => {
         }
     ])
     .then (answer => {
-        const 
-    })
-}
+        const newEmployee = [answer.firstName, answer.lastName]
+        //Prompt user to select role for new employee
+        const roleNewEmployee = 
+        `Select role.id, role.title
+         FROM role
+        `;
+        connection.promise().query(roleNewEmployee, (error, data)=>{
+          if(error) throw error;
+          const roles = data.map(({ id, tile }) => ({ name: title, value: id}));
+          inquirer.prompt ([
+            {
+              type: 'list',
+              name: 'role',
+              message: "Select the employee's role:",
+              choices: roles
+            }
+          ])
+          .then(answer => {
+            const role = answer.role;
+            newEmployee.push(role);
+            //Prompt user to select manager for new employee
+            const managerNewEmployee = 
+            `SELECT *
+             FROM employee`;
+             connection.promise().query(managerNewEmployee, (error, data) => {
+              if (error) throw error;
+              const managers = data.map(({ id, first_name, last_name}) => ({ name: first_name + " "+ last_name, vale: id }));
+              inquirer.prompt([
+                {
+                  type:'list',
+                  name: 'manager',
+                  message: "Select the employee's manager:",
+                  choices: managers
+                }
+              ])
+              .then(answer => {
+                const manager = answer.manager;
+                newEmployee.push(manager);
+                // Insert the new employee's information into the database
+                const insertSql = 
+                `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                VALUES (?, ?, ?, ?)`;
+                // Call the connection.query() method with the SQL query and the newEmployee array as parameters
+                connection.query(insertSql, newEmployee, (error) => {
+                  if (error) throw error;
+                  console.log("A new employee has been added to the database")
+                  viewAllEmployees();
+                });
+              });
+             });
+          });
+        });
+    });
+};
