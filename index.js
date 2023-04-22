@@ -10,7 +10,7 @@ require("console.table"); // Console.table to print MySQL rows to the console
 
 connection.connect((error) => {
   if (error) throw error;
-  console.log(chalk.cyanBright.bold(figlet.textSync("Employee Management")));
+  console.log(chalk.cyan.bold(figlet.textSync("Employee Management")));
   // Call function userChoices
   userChoices();
 });
@@ -111,7 +111,7 @@ const viewAllEmployees = () => {
 //The query () method takes the sql query as a parameter to be executed and a callback function to handle the result of the sql query
   connection.promise().query(query, (error, response) => {
     if (error) throw error;
-    console.log(chalk.cyanBright.bold(`View all Employees`));
+    console.log(chalk.cyan.bold(`View all Employees`));
     console.table(response);
     //Call userChoices function to show choices again
     userChoices();
@@ -267,10 +267,39 @@ const updateEmployeeRole = () => {
           WHERE employee.is= ?`;
           connection.query(sql, [employeeId, newRoleId], (error) => {
             if (error) throw error;
-              console.log(chalk.cyanBright('Employee role updated'));
+              console.log(chalk.cyan('Employee role updated'));
               userChoices();
           })
         })
+      })
+     })
+   }
+
+   // Function to View All Roles
+    const viewAllRoles = () => {
+    console.log(chalk.cyan("Current Roles:"))
+    // Query to select employees roles and their departments
+    const query = 
+    `SELECT r.id, r.title, d.department_name AS department
+     FROM role r
+     INNER JOIN department ON r.department_id = d.id`;
+     // Execute the SQL query
+     connection.promise().query(query, (error, response) => {
+      if (error) throw error;
+      response.forEach((role) => {console.log(role.title)});
+      userChoices();
+     });
+   };
+
+   // Function to Add Role
+   const addRole = () => {
+    const query = 
+    `SELECT *
+     FROM department`
+     connection.promise().query(query, (error, response) => {
+      if (error) throw error;
+      let arrayOfDepartments = [];
+      response.forEach((department) => { arrayOfDepartments.push
       })
      })
    }
