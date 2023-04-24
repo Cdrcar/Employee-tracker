@@ -4,6 +4,7 @@ const inquirer = require("inquirer"); //Inquirer package to interact with the us
 const connection = require("./config/connection");
 const figlet = require("figlet"); // Figlet to add style to text in the terminal
 const chalk = require("chalk"); // Chalk to style the console with colors
+const validate = require('./validate');// Validator contains functions that can be used to validate user input
 require("console.table"); // Console.table to print MySQL rows to the console
 
 //Establish connection to MySQL database, console log to the console error or success message
@@ -157,7 +158,7 @@ const addEmployee = () => {
         `;
         connection.promise().query(roleNewEmployee, (error, data)=>{
           if(error) throw error;
-          const roles = data.map(({ id, tile }) => ({ name: title, value: id}));
+          const roles = data.map(({ id, title }) => ({ name: title, value: id}));
           inquirer.prompt ([
             {
               type: 'list',
@@ -175,7 +176,7 @@ const addEmployee = () => {
              FROM employee`;
              connection.promise().query(managerNewEmployee, (error, data) => {
               if (error) throw error;
-              const managers = data.map(({ id, first_name, last_name}) => ({ name: first_name + " "+ last_name, vale: id }));
+              const managers = data.map(({ id, first_name, last_name}) => ({ name: first_name + " "+ last_name, value: id }));
               inquirer.prompt([
                 {
                   type:'list',
@@ -291,15 +292,99 @@ const updateEmployeeRole = () => {
      });
    };
 
-   // Function to Add Role
-   const addRole = () => {
-    const query = 
-    `SELECT *
-     FROM department`
-     connection.promise().query(query, (error, response) => {
-      if (error) throw error;
-      let arrayOfDepartments = [];
-      response.forEach((department) => { arrayOfDepartments.push
-      })
-     })
-   }
+   
+// Function to Add Role
+const addRole = () => {
+  const query = 
+  `SELECT * 
+   FROM department`;
+  connection.promise().query(query)
+    .then((response) => {
+      let arrayOfDepartments = response[0].map((department) => department.department_name);
+      arrayOfDepartments.push('Create Department');
+      return inquirer.prompt([
+        {
+          name: 'departmentName',
+          type: 'list',
+          message: 'Which department is this new role in?',
+          choices: arrayOfDepartments
+        }
+      ]);
+    })
+    .then((answer) => {
+      if (answer.departmentName === 'Create Department') {
+        return addDepartment();
+      } else {
+        return answer;
+      }
+    })
+    .then((answer) => {
+      const departmentName = answer.departmentName;
+      const newRoleQuestions = [
+        {
+          name: 'newRole',
+          type: 'input',
+          message: 'What is the name of your new role?',
+          validate: validate.validateString
+        },
+        {
+          name: 'salary',
+          type: 'input',
+          message: 'What is the salary of this new role?',
+          validate: validate.validateSalary
+        }
+      ];
+      return inquirer.prompt(newRoleQuestions).then((roleAnswers) => ({
+        ...answer,
+        ...roleAnswers
+      }));
+    })
+    .then((answers) => {
+      const departmentName = answers.departmentName;
+      const newRole = answers.newRole;
+      const salary = answers.salary;
+
+      const departmentIdSql = `SELECT * FROM department WHERE department_name = ?`;
+      connection.promise().query(departmentIdSql, departmentName)
+        .then((response) => {
+          const departmentId = response[0][0].id;
+          const insertRoleSql = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
+          connection.promise().query(insertRoleSql, [newRole, salary, departmentId])
+            .then(() => {
+              console.log(chalk.cyan(`Role successfully created!`));
+              return viewAllRoles();
+            })
+            .catch((error) => {
+              console.log(chalk.whiteBright.bgRed.bold(`An error occurred: ${error}`));
+              return userChoices();
+            });
+        })
+        .catch((error) => {
+          console.log(chalk.whiteBright.bgRed.bold(`An error occurred: ${error}`));
+          return userChoices();
+        });
+    })
+    .catch((error) => {
+      console.log(chalk.whiteBright.bgRed.bold(`An error occurred: ${error}`));
+      return userChoices();
+    });
+};
+
+  //  // Validate string function
+  //  const validateInput = (input) => {
+  //   if (input.trim() === '') {
+  //     return 'Please enter a valid role name';
+  //   }
+  //   return true;
+  // };
+
+  // // Validate decimal function
+  // const validateSalary = (num) => {
+  //   if (validator.isDecimal(num)) {
+  //     return true;
+  //   }
+  //   return 'Please enter a valid decimal number!';
+  // };
+
+  // Function to View All Departments
+  
