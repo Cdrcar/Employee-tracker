@@ -482,4 +482,17 @@ const addRole = () => {
   };
 
   // Function to View Employees By Department
+  const viewEmployeesByDepartment = () => {
+    const query = 
+    `SELECT e.first_name, e.last_name, department.department_name AS deparment
+     FROM employee e
+     LEFT JOIN role ON e.role_id = role.id
+     LEFT JOIN department ON role.department_id = department.id`;
 
+     connection.query(query, (error, response) => {
+      if (error) throw error;
+      console.log(chalk.cyan(`Employees by Department:`));
+      console.table(response);
+      userChoices();
+     });
+  };
