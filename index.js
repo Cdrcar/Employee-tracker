@@ -457,7 +457,6 @@ const addRole = () => {
           if(answer.selectEmployee === `${employee.first_name} ${employee.last_name}`) {
             employeeId = employee.id;
           }
-
           if (answer.newManager === `${employee.first_name} ${employee.last_name}`){
             managerId = employee.id;
           }
@@ -494,5 +493,43 @@ const addRole = () => {
       console.log(chalk.cyan(`Employees by Department:`));
       console.table(response);
       userChoices();
+     });
+  };
+
+  // Function to Remove Employee
+  const removeEmployee = () => {
+    let query = 
+    `SELECT e.id, e.first_name, e.last_name
+     FROM employee e`;
+
+     connection.promise().query(query, (error, response) => {
+      if (error) throw error;
+      let arrayOfEmployees = [];
+      response.forEach((employee) => {arrayOfEmployees.push(`${employee.first_name} ${employee.last_name}`)});
+
+      inquirer.prompt([
+        {
+          name: 'selectEmployee',
+          type: 'list',
+          message: "Select employee to remove:",
+          choices: arrayOfEmployees
+        }
+      ])
+      .then((answer) => {
+        let employeeId;
+        response.forEach((employee) => {
+          if (answer.selectEmployee === `${employee.first_name} ${employee.last_name}`) {
+            employeeId = employee.id;
+          }
+        });
+        let query = 
+        `DELETE FROM employee
+         WHERE employee.id = ?`;
+         connection.query(query, [employeeId], (error) => {
+          if (error) throw error;
+          console.log(chalk.cyan(`Employee Removed`))
+          viewAllEmployees();
+         })
+      });
      });
   };
