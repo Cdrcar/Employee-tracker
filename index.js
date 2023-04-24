@@ -425,3 +425,61 @@ const addRole = () => {
        });
     });
   };
+
+  // Function to Update Employee Manager
+  const updateEmployeeManager = () => {
+    let query = 
+    `SELECT e.id, e.first_name, e.last_name, e.manager_id
+     FROM employee e`;
+     connection.promise().query(query, (error, response) => {
+      let arrayOfEmployees = [];
+      response.forEach((employee) => {
+        arrayOfEmployees.push (`${employee.first_name} ${employee.last_name}`)
+      });
+
+      inquirer.prompt ([
+        {
+          name: 'selectEmployee',
+          type: 'list',
+          message: " Select employee to update their manager:",
+          choices: arrayOfEmployees
+        },
+        {
+          name: 'newManager',
+          type: 'list',
+          message: "Select manager:",
+          choices: arrayOfEmployees
+        }
+      ])
+      .then((answer) => {
+        employeeId, managerId;
+        response.forEach((employee) => {
+          if(answer.selectEmployee === `${employee.first_name} ${employee.last_name}`) {
+            employeeId = employee.id;
+          }
+
+          if (answer.newManager === `${employee.first_name} ${employee.last_name}`){
+            managerId = employee.id;
+          }
+        });
+        if (validate.isSame(answer.selectEmployee, answer.newManager)){
+          console.log(chalk.cyan(`Invalid Manager Selection`));
+          userChoices();
+        } else {
+          let query = 
+          `UPDATE employee 
+           SET employee.manager_id = ?
+           WHERE employee.i = ?`;
+
+           connection.query (query, [managerId, employeeId], (error) => {
+            if (error) throw error;
+            console.log(chalk.cyan(`Employee Manager Updated`));
+            userChoices();
+           });
+        };
+      });
+     });
+  };
+
+  // Function to View Employees By Department
+
