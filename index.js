@@ -207,6 +207,7 @@ const addEmployee = () => {
     });
 };
 
+
 // Function to Update Employee Role
 const updateEmployeeRole = () => {
   // Define SQL query
@@ -276,6 +277,7 @@ const updateEmployeeRole = () => {
       })
      })
    }
+
 
    // Function to View All Roles
     const viewAllRoles = () => {
@@ -403,6 +405,7 @@ const addRole = () => {
      });
   };
 
+
   // Function to Add Department
   const addDepartment = () => {
     inquirer
@@ -427,12 +430,14 @@ const addRole = () => {
     });
   };
 
+
   // Function to Update Employee Manager
   const updateEmployeeManager = () => {
     let query = 
     `SELECT e.id, e.first_name, e.last_name, e.manager_id
      FROM employee e`;
      connection.promise().query(query, (error, response) => {
+      if (error) throw error;
       let arrayOfEmployees = [];
       response.forEach((employee) => {
         arrayOfEmployees.push (`${employee.first_name} ${employee.last_name}`)
@@ -497,6 +502,7 @@ const addRole = () => {
      });
   };
 
+
   // Function to Remove Department
   const removeDepartment = () => {
     let query = 
@@ -534,13 +540,51 @@ const addRole = () => {
           if (error) throw error;
           console.log(chalk.cyan(`Department removed`));
           viewAllDepartments();
-         })
-      })
-
-     })
-  }
+         });
+      });
+     });
+  };
 
   //Function to Remove Role
+  const removeRole = () => {
+    let query = 
+    `SELECT r.id, r.title
+     FROM role r`;
+
+     connection.promise().query(query, (error, response) => {
+      if (error) throw error;
+      let arrayOfRoles = [];
+      response.forEach((response) => {arrayOfRoles.push(role.title)});
+
+      inquirer.prompt ([
+        {
+          name: 'roleTitle',
+          type: 'list',
+          message: "Select Role to be removed:",
+          choices: arrayOfRoles
+        }
+      ])
+      .then((answer) => {
+        let roleId;
+
+        response.forEach((role) => {
+          if (answer.roleTitle === role.title) {
+            roleId = role.id;
+          }
+        });
+
+        let query = 
+        `DELETE FROM role
+         WHERE role.id = ?`;
+         
+         connection.promise().query(query, (roleId), (error) => {
+          if (error) throw error;
+          console.log(chalk.cyan('Role removed'));
+          viewAllRoles();
+         });
+      });
+     });
+  };
 
 
   // Function to Remove Employee
