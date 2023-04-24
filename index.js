@@ -295,6 +295,7 @@ const updateEmployeeRole = () => {
    
 // Function to Add Role
 const addRole = () => {
+  // Select to which department does the new role belong to
   const query = 
   `SELECT * 
    FROM department`;
@@ -344,9 +345,11 @@ const addRole = () => {
       const newRole = answers.newRole;
       const salary = answers.salary;
 
-      const departmentIdSql = `SELECT * FROM department WHERE department_name = ?`;
+      const departmentIdSql = 
+      `SELECT * FROM department
+       WHERE department_name = ?`;
       connection.promise().query(departmentIdSql, departmentName)
-        .then((response) => {
+        .then ( (response) => {
           const departmentId = response[0][0].id;
           const insertRoleSql = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
           connection.promise().query(insertRoleSql, [newRole, salary, departmentId])
@@ -387,4 +390,38 @@ const addRole = () => {
   // };
 
   // Function to View All Departments
-  
+  const viewAllDepartments = () => {
+    const query = 
+    `SELECT d.id AS id, d.department_name AS department
+     FROM department d`;
+     connection.promise().query(query, (error, response) => {
+      if (error) throw error;
+      console.log(chalk.cyan(`All Departments:`));
+      console.table(response);
+      userChoices();
+     });
+  };
+
+  // Function to Add Department
+  const addDepartment = () => {
+    inquirer
+    .prompt ([
+      {
+        name: 'newDepartment',
+        type: 'input',
+        message: "What is the Department's name?",
+        validate: validate.validateString
+      }
+    ])
+    .then ((answer) => {
+      let query = 
+      `INSERT INTO department (department_name)
+       VALUES (?)`;
+       connection.query(query, answer.newDepartment, (error, response) => {
+        if (error) throw error;
+        console.log(chalk.cyan(answer.newDepartment));
+        console.log(`Department added!`);
+        viewAllDepartments();
+       });
+    });
+  };
