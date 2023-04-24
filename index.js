@@ -5,6 +5,7 @@ const connection = require("./config/connection");
 const figlet = require("figlet"); // Figlet to add style to text in the terminal
 const chalk = require("chalk"); // Chalk to style the console with colors
 const validate = require('./validate');// Validator contains functions that can be used to validate user input
+const { errorMonitor } = require("mysql2/typings/mysql/lib/Connection");
 require("console.table"); // Console.table to print MySQL rows to the console
 
 //Establish connection to MySQL database, console log to the console error or success message
@@ -496,6 +497,52 @@ const addRole = () => {
      });
   };
 
+  // Function to Remove Department
+  const removeDepartment = () => {
+    let query = 
+    `SELECT d.id, d.department_name
+     FROM department d`;
+
+     connection.promise().query(query, (error, response) => {
+      if(error) throw error;
+      let arrayOfDepartments = [];
+      response.forEach((department) => {
+        arrayOfDepartments.push(department.department_name)
+      });
+
+      inquirer.prompt([
+        {
+          name: 'departmentName',
+          type: 'list',
+          message: "Select Department to be removed:",
+          choices: arrayOfDepartments
+        }
+      ])
+      .then((answer) => {
+        let departmentId;
+
+        response.forEach((department) => {
+          if (answer.departmentName === department.department_name) {
+            departmentId = department.id;
+          }
+        });
+
+        let query = 
+        `DELETE FROM department
+         WHERE department.id = ?`;
+         connection.promise().query(query, [departmentId], (error) => {
+          if (error) throw error;
+          console.log(chalk.cyan(`Department removed`));
+          viewAllDepartments();
+         })
+      })
+
+     })
+  }
+
+  //Function to Remove Role
+
+
   // Function to Remove Employee
   const removeEmployee = () => {
     let query = 
@@ -533,3 +580,5 @@ const addRole = () => {
       });
      });
   };
+
+  // Function to View Department Budget
