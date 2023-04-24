@@ -1,5 +1,4 @@
 //Require dependencies
-
 const inquirer = require("inquirer"); //Inquirer package to interact with the user via the command line
 const connection = require("./config/connection");
 const figlet = require("figlet"); // Figlet to add style to text in the terminal
@@ -8,14 +7,15 @@ const validate = require("./validate"); // Validator contains functions that can
 // const { errorMonitor } = require("mysql2/typings/mysql/lib/Connection");
 require("console.table"); // Console.table to print MySQL rows to the console
 
-//Establish connection to MySQL database, console log to the console error or success message
 
+//Establish connection to MySQL database, console log to the console error or success message
 connection.connect((error) => {
   if (error) throw error;
   console.log(chalk.cyan.bold(figlet.textSync("Employee Management")));
   // Call function userChoices
   userChoices();
 });
+
 
 // Function to prompt the user to select an option from the list of choices
 const userChoices = () => {
@@ -96,6 +96,7 @@ const userChoices = () => {
       }
     });
 };
+
 
 // // Function to View All Employees
 const viewAllEmployees = async () => {
@@ -307,10 +308,11 @@ const updateEmployeeRole = () => {
 };
 
 
-
+// Function to View All ROles
 const viewAllRoles = () => {
   console.log(chalk.cyan("Current Roles:"));
-  const query = `SELECT r.id, r.title, d.department_name AS department
+  const query = 
+  `SELECT r.id, r.title, d.department_name AS department
     FROM role r
     INNER JOIN department d ON r.department_id = d.id`;
     connection.promise().query(query)
@@ -439,13 +441,14 @@ const addRole = () => {
 const viewAllDepartments = () => {
   const query = `SELECT d.id AS id, d.department_name AS department
      FROM department d`;
-  connection.promise().query(query, (error, response) => {
-    if (error) throw error;
+  connection.promise().query(query)
+  .then((response) => {
     console.log(chalk.cyan(`All Departments:`));
-    console.table(response);
+    console.table(response[0]); // Pass only the rows to console.table
     userChoices();
-  });
+  })
 };
+
 
 // Function to Add Department
 const addDepartment = () => {
@@ -463,71 +466,84 @@ const addDepartment = () => {
        VALUES (?)`;
       connection.query(query, answer.newDepartment, (error, response) => {
         if (error) throw error;
-        console.log(chalk.cyan(answer.newDepartment));
-        console.log(`Department added!`);
+        console.log(``);
+        console.log(chalk.cyan(`Department added:`));
+        console.log(``);
+        console.log(chalk.cyan.bold(answer.newDepartment));
+        console.log(``);
         viewAllDepartments();
       });
     });
 };
 
+
 // Function to Update Employee Manager
 const updateEmployeeManager = () => {
   let query = `SELECT e.id, e.first_name, e.last_name, e.manager_id
      FROM employee e`;
-  connection.promise().query(query, (error, response) => {
-    if (error) throw error;
-    let arrayOfEmployees = [];
-    response.forEach((employee) => {
-      arrayOfEmployees.push(`${employee.first_name} ${employee.last_name}`);
-    });
+  connection.promise().query(query)
+    .then((response) => {
+      let arrayOfEmployees = [];
+      for (const employee of response[0]) {
+        arrayOfEmployees.push(`${employee.first_name} ${employee.last_name}`);
+      }
 
-    inquirer
-      .prompt([
-        {
-          name: "selectEmployee",
-          type: "list",
-          message: " Select employee to update their manager:",
-          choices: arrayOfEmployees,
-        },
-        {
-          name: "newManager",
-          type: "list",
-          message: "Select manager:",
-          choices: arrayOfEmployees,
-        },
-      ])
-      .then((answer) => {
-        employeeId, managerId;
-        response.forEach((employee) => {
-          if (
-            answer.selectEmployee ===
-            `${employee.first_name} ${employee.last_name}`
-          ) {
-            employeeId = employee.id;
-          }
-          if (
-            answer.newManager === `${employee.first_name} ${employee.last_name}`
-          ) {
-            managerId = employee.id;
+      inquirer
+        .prompt([
+          {
+            name: "selectEmployee",
+            type: "list",
+            message: " Select employee to update their manager:",
+            choices: arrayOfEmployees,
+          },
+          {
+            name: "newManager",
+            type: "list",
+            message: "Select manager:",
+            choices: arrayOfEmployees,
+          },
+        ])
+        .then((answer) => {
+          let employeeId, managerId;
+          response.forEach((employee) => {
+            if (
+              answer.selectEmployee ===
+              `${employee.first_name} ${employee.last_name}`
+            ) {
+              employeeId = employee.id;
+            }
+            if (
+              answer.newManager === `${employee.first_name} ${employee.last_name}`
+            ) {
+              managerId = employee.id;
+            }
+          });
+          if (validate.isSame(answer.selectEmployee, answer.newManager)) {
+            console.log(chalk.cyan(`Invalid Manager Selection`));
+            userChoices();
+          } else {
+            let query = `UPDATE employee 
+             SET employee.manager_id = ?
+             WHERE employee.id = ?`;
+
+            connection.promise().query(query, [managerId, employeeId])
+              .then(() => {
+                console.log(``);
+                console.log(chalk.cyan(`Employee Manager Updated`));
+                console.log(``);
+                userChoices();
+              })
+              .catch((error) => {
+                throw error;
+              });
           }
         });
-        if (validate.isSame(answer.selectEmployee, answer.newManager)) {
-          console.log(chalk.cyan(`Invalid Manager Selection`));
-          userChoices();
-        } else {
-          let query = `UPDATE employee 
-           SET employee.manager_id = ?
-           WHERE employee.i = ?`;
-
-          connection.query(query, [managerId, employeeId], (error) => {
-            if (error) throw error;
-            console.log(chalk.cyan(`Employee Manager Updated`));
-            userChoices();
-          });
-        }
-      });
-  });
+    })
+    .catch((error) => {
+      throw error;
+    });
 };
+
 
 // Function to View Employees By Department
 const viewEmployeesByDepartment = () => {
