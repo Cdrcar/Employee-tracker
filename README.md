@@ -25,7 +25,7 @@ Command-line application that accepts user input allowing a business owner to vi
 
 ## [Walkthrough video](#table-of-contents)
 
-  [Link to video]()
+[Link to video](https://drive.google.com/file/d/1lBvejOug7C9P5bpHPlht4YL7bJzLDo-J/view)
 
 
 ## [Final Result](#table-of-contents)
