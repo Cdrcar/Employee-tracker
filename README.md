@@ -30,8 +30,8 @@ Command-line application that accepts user input allowing a business owner to vi
 
 ## [Final Result](#table-of-contents)
 
-  ![]()
-  ![]()
+  ![View All Employees](assets/ViewAllEmployees.png)
+  
 
 
 ## [Installation](#table-of-contents)
