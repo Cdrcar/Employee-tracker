@@ -15,10 +15,10 @@ VALUES
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES
 ("Lyndon","Johnson", 1, null),
-("Richard", "Nixon", 1, 1),
-("Gerald", "Ford", 2, null),
-("Jimmy", "Carter", 2, 2),
-("Ronald", "Reagan", 3, null),
-("Hurry", "Truman", 3, 3),
-("Franklin", "Roosevelt", 4, null),
-("Dwight", "Eisenhower", 4, 4);
+("Richard", "Nixon", 2, 1),
+("Gerald", "Ford", 3, null),
+("Jimmy", "Carter", 4, 2),
+("Ronald", "Reagan", 5, null),
+("Hurry", "Truman", 6, 3),
+("Franklin", "Roosevelt", 7, null),
+("Dwight", "Eisenhower", 8, 4);
